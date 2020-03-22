@@ -59,7 +59,7 @@ class Game:
     }
 
     #Declaration des atouts & Score & Paquet de cartes & players
-    def __init__(self, players, trump=None, score=(0,0), cards=None, position=0):
+    def __init__(self, players, trump=None, score=(0,0), cards=None, position=0, dealer=None, tour=0, pli=[]):
         self.players = players
         self.trump = trump
         self.score = score
@@ -68,6 +68,15 @@ class Game:
         else:
             self.cards = cards
         self.position = position
+        self.dealer = dealer
+        self.tour = tour
+        self.pli = pli
+
+    def set_trump(self, trump):
+        self.trump = trump
+
+    def set_dealer(self,dealer):
+        self.dealer = dealer
 
     #creation d'un jeu de cartes
     def create_deck(self):
@@ -95,22 +104,90 @@ class Game:
 
         else:
             for i in range(4):
-                self.players[self.position + i % 4].hand += self.cards[:3]
+                self.players[(self.position + i) % 4].hand += self.cards[:3]
                 self.cards = self.cards[3:]
 
             for i in range(4):
-                self.players[self.position + i % 4].hand += self.cards[:2]
+                self.players[(self.position + i) % 4].hand += self.cards[:2]
                 self.cards = self.cards[2:]
+
+    def distri_deck_sec(self):
+            for i in range(4):
+                if self.players[(self.position + i) % 4].name == self.dealer.name:
+                    self.players[(self.position + i) % 4].hand += self.cards[:2]
+                    self.cards = self.cards[2:]
+                else:
+                    self.players[(self.position + i) % 4].hand += self.cards[:3]
+                    self.cards = self.cards[3:]
+
+    # jeu de carte retabli si aucun joueur ne choisit l atout.
+    def redistri(self):
+        for i in range(4):
+            self.cards += self.players[(self.position + i) % 4].hand
+        tour += 1
+        if tour == 3:
+            self.position = (self.postion + 1) % 4
+            tour = 0
+
+    # carte d'atout donnee au dealer
+    def distri_carte_atout(self):
+        self.dealer.hand.append(self.cards.pop(0))
+
+    #inserer une carte dans le pli
+    def add_to_pli(self, index):
+        self.pli.append(self.players.hand.pop(index))
+        if len(self.pli)==4:
+            self.win_pli()
+
+    #gerer le gagnant du pli
+    def win_pli(self):
+        return self.controle_atout()
+
+    #controle atouts
+    def controle_atout(self):
+        atout = [card for card in self.pli if card.couleur == self.trump]
+        if len(atout) != 0:
+            atout_max = max(atout, key=lambda x: self.POINTS_ATOUT[x.valeur])
+            if [self.POINTS_ATOUT[card.valeur] for card in atout].count(self.POINTS_ATOUT[atout_max.valeur]) > 1:
+                atout_max = max(atout, key=lambda x: x.valeur)
+            return self.pli.index(atout_max)
+        else:
+            return self.controle_prems_couleur()
+
+    #controle premiere couleur jouee
+    def controle_prems_couleur(self):
+        couleur_pli = [card for card in self.pli if card.couleur == self.pli[0].couleur]
+        couleur_max = max(couleur_pli, key=lambda x: self.POINTS_SANS_ATOUT[x.valeur])
+        if [self.POINTS_SANS_ATOUT[card.valeur] for card in couleur_pli].count(self.POINTS_SANS_ATOUT[couleur_max.valeur]) > 1:
+            couleur_max = max(couleur_pli, key=lambda x: x.valeur)
+        return self.pli.index(couleur_max)
 
 #lancement du Jeu
 game = Game([Player('Tristan'), Player('Alexis'), Player('Baptiste'), Player('Tiffany')])
-#game = Game(["Tristan", "Alexis"], Coeur, (100, 0), cards)
+
+#Affichage des initialisation
 print(game.cards)
 print(f"Le jeu comporte {len(game.cards)} cartes.")
 print(f"Les joueurs en jeu sont {', '.join([game.players[i].name for i in range(4)])}.")
 print(f"L'atout est {game.trump}.")
 print(f"Le score actuel est de: {game.score[0]} pour Nous et {game.score[1]} pour Eux.")
+print(f"Celui qui commence est {game.players[game.position].name}.")
+print(f"Le dealer est {game.dealer}.")
 
 game.distri_deck(True)
+game.set_dealer(game.players[1])
+game.set_trump('Carreau')
+game.distri_carte_atout()
+game.distri_deck_sec()
+
+game.pli = [Card(7,'Coeur'),Card(8,'Coeur'),Card(14,'Trefle'),Card(10,'Pique')]
+print(f"Le gagnant du pli est {game.players[game.win_pli()].name}.")
+
+game.pli = [Card(7,'Coeur'),Card(8,'Coeur'),Card(14,'Trefle'),Card(10,'Carreau')]
+print(f"Le gagnant du pli est {game.players[game.win_pli()].name}.")
+
+game.pli = [Card(7,'Coeur'),Card(8,'Coeur'),Card(7,'Carreau'),Card(8,'Carreau')]
+print(f"Le gagnant du pli est {game.players[game.win_pli()].name}.")
+
 for i in range(4):
-    print(f"Le jeu de {game.players[i].name} est {game.players[i].hand}.")
+    print(f"La taille du jeu de {game.players[i].name} est {len(game.players[i].hand)}.")
