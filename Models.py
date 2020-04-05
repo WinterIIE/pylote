@@ -8,6 +8,14 @@ class Player:
         self.name = name
         self.hand = list(hand)
 
+    def controle_couleur(self, couleur):
+        bool = False
+        for card in self.hand:
+            if card.couleur == couleur:
+                bool = True
+                break
+        return bool
+
 class Card:
     """This class implements cards."""
     #dictionnaire de cartes
