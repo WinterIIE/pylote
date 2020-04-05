@@ -2,8 +2,10 @@
 
 import random
 
+
 class Player:
     """This class implements players."""
+
     def __init__(self, name, hand=[]):
         self.name = name
         self.hand = list(hand)
@@ -16,58 +18,60 @@ class Player:
                 break
         return bool
 
+
 class Card:
     """This class implements cards."""
-    #dictionnaire de cartes
+    # dictionnaire de cartes
     CARD_DICT = {
-        7 : '7',
-        8 : '8',
-        9 : '9',
-        10 : '10',
-        11 : 'Valet',
-        12 : 'Dame',
-        13 : 'Roi',
-        14 : 'As'
+        7: '7',
+        8: '8',
+        9: '9',
+        10: '10',
+        11: 'Valet',
+        12: 'Dame',
+        13: 'Roi',
+        14: 'As'
     }
 
-    #Declaration des valeurs & couleurs
+    # Declaration des valeurs & couleurs
     def __init__(self, valeur, couleur):
         self.valeur = valeur
         self.couleur = couleur
 
-    #Affichage d'une carte (comprehensible)
+    # Affichage d'une carte (comprehensible)
     def __repr__(self):
         return f"{self.CARD_DICT.get(self.valeur)} de {self.couleur}"
+
 
 class Game:
     """This class implements a game of belote."""
 
-    #dictionnaire valeurs atouts
+    # dictionnaire valeurs atouts
     POINTS_ATOUT = {
-        7 : 0,
-        8 : 0,
-        9 : 14,
-        10 : 10,
-        11 : 20,
-        12 : 3,
-        13 : 4,
-        14 : 11
+        7: 0,
+        8: 0,
+        9: 14,
+        10: 10,
+        11: 20,
+        12: 3,
+        13: 4,
+        14: 11
     }
 
-    #dictionnaire valeurs sans atouts
+    # dictionnaire valeurs sans atouts
     POINTS_SANS_ATOUT = {
-        7 : 0,
-        8 : 0,
-        9 : 0,
-        10 : 10,
-        11 : 2,
-        12 : 3,
-        13 : 4,
-        14 : 11
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 10,
+        11: 2,
+        12: 3,
+        13: 4,
+        14: 11
     }
 
-    #Declaration des atouts & Score & Paquet de cartes & players
-    def __init__(self, players, trump=None, score=(0,0), cards=None, position=0, dealer=None, tour=0, pli=[]):
+    # Declaration des atouts & Score & Paquet de cartes & players
+    def __init__(self, players, trump=None, score=(0, 0), cards=None, position=0, dealer=None, tour=0, pli=[]):
         self.players = players
         self.trump = trump
         self.score = score
@@ -83,23 +87,23 @@ class Game:
     def set_trump(self, trump):
         self.trump = trump
 
-    def set_dealer(self,dealer):
+    def set_dealer(self, dealer):
         self.dealer = dealer
 
-    #creation d'un jeu de cartes
+    # creation d'un jeu de cartes
     def create_deck(self):
         cards = []
         for i in ['Coeur', 'Carreau', 'Pique', 'Trefle']:
-            for j in range(7,15):
-                cards.append(Card(j,i))
+            for j in range(7, 15):
+                cards.append(Card(j, i))
         random.shuffle(cards)
         return cards
 
-    #couper le jeu de cartes
+    # couper le jeu de cartes
     def cut_deck(self, index):
         self.cards = self.cards[index:] + self.cards[:index]
 
-    #distribuer le jeu de cartes
+    # distribuer le jeu de cartes
     def distri_deck(self, reversed=False):
         if reversed:
             for i in range(4):
@@ -120,13 +124,13 @@ class Game:
                 self.cards = self.cards[2:]
 
     def distri_deck_sec(self):
-            for i in range(4):
-                if self.players[(self.position + i) % 4].name == self.dealer.name:
-                    self.players[(self.position + i) % 4].hand += self.cards[:2]
-                    self.cards = self.cards[2:]
-                else:
-                    self.players[(self.position + i) % 4].hand += self.cards[:3]
-                    self.cards = self.cards[3:]
+        for i in range(4):
+            if self.players[(self.position + i) % 4].name == self.dealer.name:
+                self.players[(self.position + i) % 4].hand += self.cards[:2]
+                self.cards = self.cards[2:]
+            else:
+                self.players[(self.position + i) % 4].hand += self.cards[:3]
+                self.cards = self.cards[3:]
 
     # jeu de carte retabli si aucun joueur ne choisit l atout.
     def redistri(self):
@@ -141,17 +145,17 @@ class Game:
     def distri_carte_atout(self):
         self.dealer.hand.append(self.cards.pop(0))
 
-    #inserer une carte dans le pli
+    # inserer une carte dans le pli
     def add_to_pli(self, index):
         self.pli.append(self.players.hand.pop(index))
-        if len(self.pli)==4:
+        if len(self.pli) == 4:
             self.win_pli()
 
-    #gerer le gagnant du pli
+    # gerer le gagnant du pli
     def win_pli(self):
         return self.controle_atout()
 
-    #controle atouts
+    # controle atouts
     def controle_atout(self):
         atout = [card for card in self.pli if card.couleur == self.trump]
         if len(atout) != 0:
@@ -162,7 +166,7 @@ class Game:
         else:
             return self.controle_prems_couleur()
 
-    #controle premiere couleur jouee
+    # controle premiere couleur jouee
     def controle_prems_couleur(self):
         couleur_pli = [card for card in self.pli if card.couleur == self.pli[0].couleur]
         couleur_max = max(couleur_pli, key=lambda x: self.POINTS_SANS_ATOUT[x.valeur])
@@ -170,10 +174,11 @@ class Game:
             couleur_max = max(couleur_pli, key=lambda x: x.valeur)
         return self.pli.index(couleur_max)
 
-#lancement du Jeu
+
+# lancement du Jeu
 game = Game([Player('Tristan'), Player('Alexis'), Player('Baptiste'), Player('Tiffany')])
 
-#Affichage des initialisation
+# Affichage des initialisation
 print(game.cards)
 print(f"Le jeu comporte {len(game.cards)} cartes.")
 print(f"Les joueurs en jeu sont {', '.join([game.players[i].name for i in range(4)])}.")
@@ -188,13 +193,13 @@ game.set_trump('Carreau')
 game.distri_carte_atout()
 game.distri_deck_sec()
 
-game.pli = [Card(7,'Coeur'),Card(8,'Coeur'),Card(14,'Trefle'),Card(10,'Pique')]
+game.pli = [Card(7, 'Coeur'), Card(8, 'Coeur'), Card(14, 'Trefle'), Card(10, 'Pique')]
 print(f"Le gagnant du pli est {game.players[game.win_pli()].name}.")
 
-game.pli = [Card(7,'Coeur'),Card(8,'Coeur'),Card(14,'Trefle'),Card(10,'Carreau')]
+game.pli = [Card(7, 'Coeur'), Card(8, 'Coeur'), Card(14, 'Trefle'), Card(10, 'Carreau')]
 print(f"Le gagnant du pli est {game.players[game.win_pli()].name}.")
 
-game.pli = [Card(7,'Coeur'),Card(8,'Coeur'),Card(7,'Carreau'),Card(8,'Carreau')]
+game.pli = [Card(7, 'Coeur'), Card(8, 'Coeur'), Card(7, 'Carreau'), Card(8, 'Carreau')]
 print(f"Le gagnant du pli est {game.players[game.win_pli()].name}.")
 
 for i in range(4):
